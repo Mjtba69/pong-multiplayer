@@ -17,7 +17,6 @@ const PADDLE_WIDTH = 12;
 const PADDLE_HEIGHT = 80;
 const BALL_SIZE = 14;
 const PADDLE_SPEED = 5;
-const MAX_SCORE = 5;
 const WIN_SCORE = 5;
 
 const rooms = {};
@@ -25,14 +24,14 @@ const rooms = {};
 function createRoom(roomId) {
   rooms[roomId] = {
     players: {},
-    ball: {
-      x: GAME_WIDTH / 2,
-      y: GAME_HEIGHT / 2,
-      vx: 4,
-      vy: 3,
-      size: BALL_SIZE,
-    },
+    ball: { x: GAME_WIDTH / 2, y: GAME_HEIGHT / 2, vx: 4, vy: 3, size: BALL_SIZE },
     scores: { 0: 0, 1: 0, 2: 0, 3: 0 },
+    paddles: [
+      { x: 30, y: GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2 },
+      { x: GAME_WIDTH - 30 - PADDLE_WIDTH, y: GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2 },
+      { x: GAME_WIDTH / 2 - PADDLE_HEIGHT / 2, y: 30 },
+      { x: GAME_WIDTH / 2 - PADDLE_HEIGHT / 2, y: GAME_HEIGHT - 30 - PADDLE_WIDTH },
+    ],
     state: 'waiting',
     loop: null,
     playerSlots: [null, null, null, null],
@@ -45,17 +44,6 @@ function getPlayerSlot(room) {
     if (!room.playerSlots[i]) return i;
   }
   return -1;
-}
-
-function getPaddlePosition(slot) {
-  const pad = PADDLE_HEIGHT;
-  const margin = 30;
-  switch (slot) {
-    case 0: return { x: margin, y: GAME_HEIGHT / 2 - pad / 2, w: PADDLE_WIDTH, h: pad }; // left
-    case 1: return { x: GAME_WIDTH - margin - PADDLE_WIDTH, y: GAME_HEIGHT / 2 - pad / 2, w: PADDLE_WIDTH, h: pad }; // right
-    case 2: return { x: GAME_WIDTH / 2 - pad / 2, y: margin, w: pad, h: PADDLE_WIDTH }; // top
-    case 3: return { x: GAME_WIDTH / 2 - pad / 2, y: GAME_HEIGHT - margin - PADDLE_WIDTH, w: pad, h: PADDLE_WIDTH }; // bottom
-  }
 }
 
 function resetBall(room) {
@@ -75,91 +63,62 @@ function gameLoop(roomId) {
   ball.x += ball.vx;
   ball.y += ball.vy;
 
-  const slots = [0, 1, 2, 3];
-  for (const slot of slots) {
-    const playerId = room.playerSlots[slot];
-    if (!playerId) continue;
-    const p = room.players[playerId];
-    if (!p) continue;
-    const paddle = getPaddlePosition(slot);
+  // Paddle collision - left (0) and right (1)
+  for (let slot = 0; slot <= 1; slot++) {
+    const pid = room.playerSlots[slot];
+    if (!pid) continue;
+    const p = room.paddles[slot];
+    const padLeft = p.x;
+    const padRight = p.x + PADDLE_WIDTH;
+    const padTop = p.y;
+    const padBottom = p.y + PADDLE_HEIGHT;
 
-    if (slot === 0 || slot === 1) {
-      const padLeft = paddle.x;
-      const padRight = paddle.x + paddle.w;
-      const padTop = paddle.y;
-      const padBottom = paddle.y + paddle.h;
-
-      if (
-        ball.x - ball.size / 2 <= padRight &&
-        ball.x + ball.size / 2 >= padLeft &&
-        ball.y + ball.size / 2 >= padTop &&
-        ball.y - ball.size / 2 <= padBottom
-      ) {
-        ball.vx = -ball.vx * 1.05;
-        ball.x = slot === 0 ? padRight + ball.size / 2 : padLeft - ball.size / 2;
-        const relativeY = (ball.y - (paddle.y + paddle.h / 2)) / (paddle.h / 2);
-        ball.vy += relativeY * 0.5;
-      }
-    } else {
-      const padLeft = paddle.x;
-      const padRight = paddle.x + paddle.w;
-      const padTop = paddle.y;
-      const padBottom = paddle.y + paddle.h;
-
-      if (
-        ball.y - ball.size / 2 <= padBottom &&
-        ball.y + ball.size / 2 >= padTop &&
-        ball.x + ball.size / 2 >= padLeft &&
-        ball.x - ball.size / 2 <= padRight
-      ) {
-        ball.vy = -ball.vy * 1.05;
-        ball.y = slot === 2 ? padBottom + ball.size / 2 : padTop - ball.size / 2;
-        const relativeX = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
-        ball.vx += relativeX * 0.5;
-      }
+    if (ball.x - ball.size / 2 <= padRight && ball.x + ball.size / 2 >= padLeft &&
+        ball.y + ball.size / 2 >= padTop && ball.y - ball.size / 2 <= padBottom) {
+      ball.vx = -ball.vx * 1.05;
+      ball.x = slot === 0 ? padRight + ball.size / 2 : padLeft - ball.size / 2;
+      const relY = (ball.y - (p.y + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+      ball.vy += relY * 0.5;
     }
   }
 
+  // Paddle collision - top (2) and bottom (3)
+  for (let slot = 2; slot <= 3; slot++) {
+    const pid = room.playerSlots[slot];
+    if (!pid) continue;
+    const p = room.paddles[slot];
+    const padLeft = p.x;
+    const padRight = p.x + PADDLE_HEIGHT;
+    const padTop = p.y;
+    const padBottom = p.y + PADDLE_WIDTH;
+
+    if (ball.y - ball.size / 2 <= padBottom && ball.y + ball.size / 2 >= padTop &&
+        ball.x + ball.size / 2 >= padLeft && ball.x - ball.size / 2 <= padRight) {
+      ball.vy = -ball.vy * 1.05;
+      ball.y = slot === 2 ? padBottom + ball.size / 2 : padTop - ball.size / 2;
+      const relX = (ball.x - (p.x + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+      ball.vx += relX * 0.5;
+    }
+  }
+
+  // Speed cap
   const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
-  const maxSpeed = 10;
-  if (speed > maxSpeed) {
-    ball.vx = (ball.vx / speed) * maxSpeed;
-    ball.vy = (ball.vy / speed) * maxSpeed;
+  if (speed > 10) {
+    ball.vx = (ball.vx / speed) * 10;
+    ball.vy = (ball.vy / speed) * 10;
   }
 
+  // Scoring
   let scored = false;
-  if (ball.x - ball.size / 2 <= 0) {
-    if (room.playerSlots[0]) {
-      room.scores[0] = WIN_SCORE;
-      scored = true;
-    }
-  }
-  if (ball.x + ball.size / 2 >= GAME_WIDTH) {
-    if (room.playerSlots[1]) {
-      room.scores[1] = WIN_SCORE;
-      scored = true;
-    }
-  }
-  if (ball.y - ball.size / 2 <= 0) {
-    if (room.playerSlots[2]) {
-      room.scores[2] = WIN_SCORE;
-      scored = true;
-    }
-  }
-  if (ball.y + ball.size / 2 >= GAME_HEIGHT) {
-    if (room.playerSlots[3]) {
-      room.scores[3] = WIN_SCORE;
-      scored = true;
-    }
-  }
+  if (ball.x - ball.size / 2 <= 0 && room.playerSlots[0]) { room.scores[0] = WIN_SCORE; scored = true; }
+  if (ball.x + ball.size / 2 >= GAME_WIDTH && room.playerSlots[1]) { room.scores[1] = WIN_SCORE; scored = true; }
+  if (ball.y - ball.size / 2 <= 0 && room.playerSlots[2]) { room.scores[2] = WIN_SCORE; scored = true; }
+  if (ball.y + ball.size / 2 >= GAME_HEIGHT && room.playerSlots[3]) { room.scores[3] = WIN_SCORE; scored = true; }
 
   if (scored) {
     let winner = null;
-    for (const s of slots) {
-      if (room.scores[s] >= WIN_SCORE && room.playerSlots[s]) {
-        winner = room.playerSlots[s];
-        break;
-      }
+    for (let s = 0; s < 4; s++) {
+      if (room.scores[s] >= WIN_SCORE && room.playerSlots[s]) { winner = room.playerSlots[s]; break; }
     }
     room.state = 'gameover';
     clearInterval(room.loop);
@@ -167,11 +126,11 @@ function gameLoop(roomId) {
     return;
   }
 
-  const data = {
+  io.to(roomId).emit('gameState', {
     ball: { x: ball.x, y: ball.y },
+    paddles: room.paddles,
     scores: room.scores,
-  };
-  io.to(roomId).emit('gameState', data);
+  });
 }
 
 io.on('connection', (socket) => {
@@ -191,18 +150,11 @@ io.on('connection', (socket) => {
     currentRoom = roomId;
     socket.join(roomId);
     room.playerSlots[slot] = socket.id;
-    room.players[socket.id] = {
-      id: socket.id,
-      name: data.name || `Player ${slot + 1}`,
-      slot,
-      ready: false,
-    };
+    room.players[socket.id] = { id: socket.id, name: data.name || `Player ${slot + 1}`, slot, ready: false };
 
-    socket.emit('assigned', { slot, roomId });
+    socket.emit('assigned', { slot, roomId, paddles: room.paddles });
     io.to(roomId).emit('playersUpdate', {
-      players: room.playerSlots.map((pid, i) =>
-        pid ? { name: room.players[pid]?.name, slot: i } : null
-      ),
+      players: room.playerSlots.map((pid, i) => pid ? { name: room.players[pid]?.name, slot: i } : null),
     });
 
     if (room.state === 'waiting' && room.playerSlots.filter(Boolean).length >= 2) {
@@ -210,11 +162,10 @@ io.on('connection', (socket) => {
         if (room.state === 'waiting' && room.playerSlots.filter(Boolean).length >= 2) {
           room.state = 'playing';
           resetBall(room);
-          io.to(roomId).emit('gameStart', { scores: room.scores });
-
+          io.to(roomId).emit('gameStart', { scores: room.scores, paddles: room.paddles });
           room.loop = setInterval(() => gameLoop(roomId), 1000 / 60);
         }
-      }, 2000);
+      }, 1500);
     }
   });
 
@@ -225,19 +176,11 @@ io.on('connection', (socket) => {
     if (!player || room.state !== 'playing') return;
 
     const slot = player.slot;
-    const paddle = getPaddlePosition(slot);
-
-    if (slot === 0) {
-      paddle.y = Math.max(0, Math.min(GAME_HEIGHT - paddle.h, data.y));
-    } else if (slot === 1) {
-      paddle.y = Math.max(0, Math.min(GAME_HEIGHT - paddle.h, data.y));
-    } else if (slot === 2) {
-      paddle.x = Math.max(0, Math.min(GAME_WIDTH - paddle.w, data.x));
-    } else if (slot === 3) {
-      paddle.x = Math.max(0, Math.min(GAME_WIDTH - paddle.w, data.x));
+    if (slot === 0 || slot === 1) {
+      room.paddles[slot].y = Math.max(0, Math.min(GAME_HEIGHT - PADDLE_HEIGHT, data.y));
+    } else {
+      room.paddles[slot].x = Math.max(0, Math.min(GAME_WIDTH - PADDLE_HEIGHT, data.x));
     }
-
-    room.players[socket.id].paddle = { ...paddle };
   });
 
   socket.on('disconnect', () => {
@@ -251,23 +194,14 @@ io.on('connection', (socket) => {
       if (room.state === 'playing') {
         room.state = 'gameover';
         clearInterval(room.loop);
-        io.to(currentRoom).emit('gameOver', {
-          winner: null,
-          scores: room.scores,
-          message: 'A player disconnected',
-        });
+        io.to(currentRoom).emit('gameOver', { winner: null, scores: room.scores, message: 'A player disconnected' });
       }
 
       io.to(currentRoom).emit('playersUpdate', {
-        players: room.playerSlots.map((pid, i) =>
-          pid ? { name: room.players[pid]?.name, slot: i } : null
-        ),
+        players: room.playerSlots.map((pid, i) => pid ? { name: room.players[pid]?.name, slot: i } : null),
       });
 
-      const activePlayers = room.playerSlots.filter(Boolean).length;
-      if (activePlayers === 0) {
-        delete rooms[currentRoom];
-      }
+      if (room.playerSlots.filter(Boolean).length === 0) delete rooms[currentRoom];
     }
   });
 });
