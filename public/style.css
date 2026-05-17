@@ -1,0 +1,228 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0a0f;
+  color: #e0e0e0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#lobby {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 70%);
+}
+
+.lobby-box {
+  background: rgba(20,20,40,0.9);
+  border: 1px solid rgba(110,231,183,0.2);
+  border-radius: 20px;
+  padding: 40px 50px;
+  text-align: center;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 0 60px rgba(110,231,183,0.05);
+}
+
+.lobby-box h1 {
+  font-size: 2rem;
+  color: #6ee7b7;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 30px;
+}
+
+.input-group {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-bottom: 20px;
+}
+
+.input-group input {
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #252836;
+  background: #1a1d27;
+  color: #e0e0e0;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #6ee7b7;
+}
+
+#joinBtn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #6ee7b7;
+  color: #0a0a0f;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.2s;
+}
+
+#joinBtn:hover { background: #34d399; transform: scale(1.02); }
+#joinBtn:active { transform: scale(0.98); }
+
+#players-preview { margin-top: 30px; }
+#players-preview h3 {
+  font-size: 0.9rem; color: #64748b; margin-bottom: 15px;
+}
+
+#player-slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.slot {
+  padding: 16px 12px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.slot.empty {
+  background: #1a1d27;
+  border: 1px dashed #252836;
+  color: #64748b;
+}
+
+.slot.filled {
+  background: rgba(110,231,183,0.08);
+  border: 1px solid rgba(110,231,183,0.3);
+  color: #6ee7b7;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.hint { color: #64748b; font-size: 0.8rem; margin-top: 12px; }
+
+#game-container {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  background: #0a0a0f;
+}
+
+#game-header {
+  display: flex; align-items: center;
+  justify-content: center; gap: 30px;
+  padding: 15px; width: 100%; max-width: 800px;
+}
+
+#scoreboard {
+  display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+}
+
+.score-item {
+  padding: 6px 16px;
+  border-radius: 8px;
+  background: #1a1d27;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #252836;
+}
+
+.score-item .score-num {
+  color: #6ee7b7;
+  font-size: 1.1rem;
+  margin-left: 6px;
+}
+
+#leaveBtn {
+  padding: 8px 20px;
+  background: #252836;
+  border: 1px solid #3a3d4a;
+  border-radius: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+#leaveBtn:hover { background: #3a3d4a; color: #e0e0e0; }
+
+#gameCanvas {
+  display: block;
+  background: #0d0d14;
+  border: 1px solid #1a1d27;
+  border-radius: 8px;
+  width: 800px;
+  height: 600px;
+}
+
+.hud {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+#gameover-overlay {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center; justify-content: center;
+  z-index: 100;
+}
+
+.gameover-box {
+  background: rgba(20,20,40,0.95);
+  border: 1px solid rgba(110,231,183,0.3);
+  border-radius: 20px;
+  padding: 40px 50px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.gameover-box h2 {
+  font-size: 1.8rem;
+  margin-bottom: 12px;
+}
+
+.gameover-box .winner { color: #6ee7b7; }
+.gameover-box .loser { color: #ef4444; }
+
+#gameover-detail {
+  color: #94a3b8;
+  margin-bottom: 25px;
+  font-size: 0.9rem;
+}
+
+#playAgainBtn {
+  padding: 12px 40px;
+  background: #6ee7b7;
+  color: #0a0a0f;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+#playAgainBtn:hover { background: #34d399; transform: scale(1.03); }
+
+@media (max-width: 850px) {
+  #gameCanvas { width: 100%; height: auto; aspect-ratio: 4/3; }
+  .lobby-box { padding: 30px 20px; }
+}
