@@ -18,7 +18,7 @@ body {
 }
 
 .lobby-box {
-  background: rgba(20,20,40,0.9);
+  background: rgba(20,20,40,0.92);
   border: 1px solid rgba(110,231,183,0.2);
   border-radius: 20px;
   padding: 40px 50px;
@@ -65,20 +65,31 @@ body {
   padding: 14px;
   border: none;
   border-radius: 12px;
-  background: #6ee7b7;
+  background: linear-gradient(135deg, #6ee7b7, #34d399);
   color: #0a0a0f;
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.15s, background 0.2s;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(110,231,183,0.2);
 }
 
-#joinBtn:hover { background: #34d399; transform: scale(1.02); }
+#joinBtn:hover { transform: scale(1.02); box-shadow: 0 6px 30px rgba(110,231,183,0.3); }
 #joinBtn:active { transform: scale(0.98); }
 
 #players-preview { margin-top: 30px; }
 #players-preview h3 {
   font-size: 0.9rem; color: #64748b; margin-bottom: 15px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+#playerCount {
+  background: #1a1d27;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #6ee7b7;
+  border: 1px solid #252836;
 }
 
 #player-slots {
@@ -125,21 +136,57 @@ body {
 
 #game-header {
   display: flex; align-items: center;
-  justify-content: center; gap: 30px;
-  padding: 15px; width: 100%; max-width: 800px;
+  justify-content: space-between;
+  padding: 12px 20px;
+  width: 100%;
+  max-width: 840px;
 }
 
+#header-left {
+  display: flex; align-items: center; gap: 10px;
+}
+
+#roomBadge {
+  background: #1a1d27;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #6ee7b7;
+  border: 1px solid #252836;
+  font-family: monospace;
+}
+
+#copyBtn {
+  padding: 6px 12px;
+  background: #1a1d27;
+  border: 1px solid #252836;
+  border-radius: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+#copyBtn:hover { background: #252836; color: #e0e0e0; }
+
 #scoreboard {
-  display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
 }
 
 .score-item {
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 8px;
   background: #1a1d27;
   font-size: 0.85rem;
   font-weight: 600;
   border: 1px solid #252836;
+}
+
+@keyframes scorePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
 .score-item .score-num {
@@ -148,7 +195,7 @@ body {
 }
 
 #leaveBtn {
-  padding: 8px 20px;
+  padding: 6px 16px;
   background: #252836;
   border: 1px solid #3a3d4a;
   border-radius: 8px;
@@ -164,7 +211,8 @@ body {
   display: block;
   background: #0d0d14;
   border: 1px solid #1a1d27;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(110,231,183,0.03);
 }
 
 .hud {
@@ -175,21 +223,21 @@ body {
 
 #countdown {
   position: absolute;
-  top: 50%;
+  top: calc(50% + 18px);
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 8rem;
   font-weight: 900;
   color: #6ee7b7;
-  text-shadow: 0 0 40px rgba(110,231,183,0.5);
+  text-shadow: 0 0 60px rgba(110,231,183,0.6);
   z-index: 50;
-  animation: countPulse 0.5s ease-out;
+  animation: countPulse 0.6s ease-out;
   pointer-events: none;
 }
 
 @keyframes countPulse {
-  0% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-  50% { opacity: 1; }
+  0% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+  40% { opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
@@ -200,6 +248,7 @@ body {
   display: flex;
   align-items: center; justify-content: center;
   z-index: 100;
+  backdrop-filter: blur(4px);
 }
 
 .gameover-box {
@@ -208,8 +257,14 @@ body {
   border-radius: 20px;
   padding: 40px 50px;
   text-align: center;
-  max-width: 400px;
+  max-width: 420px;
   width: 90%;
+  animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .gameover-box h2 {
@@ -228,20 +283,22 @@ body {
 
 #playAgainBtn {
   padding: 12px 40px;
-  background: #6ee7b7;
+  background: linear-gradient(135deg, #6ee7b7, #34d399);
   color: #0a0a0f;
   border: none;
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(110,231,183,0.2);
 }
 
-#playAgainBtn:hover { background: #34d399; transform: scale(1.03); }
+#playAgainBtn:hover { transform: scale(1.03); box-shadow: 0 6px 30px rgba(110,231,183,0.3); }
 
 @media (max-width: 850px) {
   #gameCanvas { width: 100%; height: auto; aspect-ratio: 4/3; }
   .lobby-box { padding: 30px 20px; }
   #countdown { font-size: 5rem; }
+  #game-header { flex-wrap: wrap; gap: 8px; }
 }
